@@ -1,13 +1,14 @@
-import { auth } from "@/app/(auth)/auth";
+
 import { getChatsByUserId } from "@/db/queries";
+import { userId } from "@/service/user";
 
 export async function GET() {
-  const session = await auth();
+  const sessionId = userId();
 
-  if (!session || !session.user) {
+  if (!sessionId) {
     return Response.json("Unauthorized!", { status: 401 });
   }
 
-  const chats = await getChatsByUserId({ id: session.user.id! });
+  const chats = await getChatsByUserId({ id: sessionId });
   return Response.json(chats);
 }

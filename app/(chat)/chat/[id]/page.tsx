@@ -3,11 +3,11 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
-import { auth } from '@/app/(auth)/auth';
 import { Chat as PreviewChat } from '@/components/custom/chat';
 import { getChatById } from '@/db/queries';
 import { Chat } from '@/db/schema';
 import { convertToUIMessages } from '@/lib/utils';
+import { userId } from '@/service/user';
 
 export default async function Page(props: { params: Promise<any> }) {
   const params = await props.params;
@@ -24,13 +24,13 @@ export default async function Page(props: { params: Promise<any> }) {
     messages: convertToUIMessages(chatFromDb.messages as Array<CoreMessage>),
   };
 
-  const session = await auth();
+  const sessionId = userId();
 
-  if (!session || !session.user) {
+  if (!sessionId) {
     return notFound();
   }
 
-  if (session.user.id !== chat.userId) {
+  if (sessionId !== chat.userId) {
     return notFound();
   }
 
