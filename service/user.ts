@@ -1,5 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 
+import { createUser, getUser } from "@/db/queries";
+
 export interface User {
     id: string;
     email: string;
@@ -7,8 +9,25 @@ export interface User {
     lastName: string;
 }
 
-export function userId() {
-    return auth()?.userId;
+export async function userId() {
+    const userId = auth()?.userId;
+    if (!userId) {
+        return null;
+    }
+
+    const luser = await user();
+    if (!luser) {
+        return null;
+    }
+
+    const email = luser?.email ?? '';
+    const userRecords = await getUser(email);
+    const userRecord = userRecords[0];
+    if (!userRecord) {
+        await createUser(email, 'xxx');
+    }
+
+    return userId;
 }
 
 export async function user(): Promise<User | null> {
