@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     return new Response('Not Found', { status: 404 });
   }
 
-  const sessionId = userId();
+  const sessionId = await userId();
 
   if (!sessionId) {
     return new Response('Unauthorized', { status: 401 });

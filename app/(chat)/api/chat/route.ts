@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   }: { id: string; messages: Array<Message>; modelId: string } =
     await request.json();
 
-  const sessionId = userId();
+  const sessionId = await userId();
 
   if (!sessionId) {
     return new Response('Unauthorized', { status: 401 });

@@ -20,7 +20,7 @@ const FileSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const sessionId = userId();
+  const sessionId = await userId();
 
   if (!sessionId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

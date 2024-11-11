@@ -24,7 +24,7 @@ export default async function Page(props: { params: Promise<any> }) {
     messages: convertToUIMessages(chatFromDb.messages as Array<CoreMessage>),
   };
 
-  const sessionId = userId();
+  const sessionId = await userId();
 
   if (!sessionId) {
     return notFound();
