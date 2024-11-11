@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { type User } from 'next-auth';
 
 import { PlusIcon, VercelIcon } from '@/components/custom/icons';
 import { SidebarHistory } from '@/components/custom/sidebar-history';
@@ -25,8 +24,12 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { BetterTooltip } from '@/components/ui/tooltip';
+import { LocalUser } from '@/service/localUser';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+
+
+export function AppSidebar() {
+  const localUser = LocalUser();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -53,7 +56,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarHistory user={user} />
+          <SidebarHistory user={localUser} />
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="gap-0">
@@ -84,10 +87,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             </Card>
           </SidebarGroupContent>
         </SidebarGroup>
-        {user && (
+        {localUser && (
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarUserNav user={user} />
+              <SidebarUserNav user={localUser} />
             </SidebarGroupContent>
           </SidebarGroup>
         )}

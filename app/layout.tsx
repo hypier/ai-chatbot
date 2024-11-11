@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Toaster } from 'sonner';
 
+import ThemeAwareClerkProvider from '@/components/custom/theme-aware-clerk-provider';
 import { ThemeProvider } from '@/components/custom/theme-provider';
 
 import './globals.css';
@@ -63,8 +64,10 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Toaster position="top-center" />
-          {children}
+          <ThemeAwareClerkProvider>
+            <Toaster position="top-center" />
+            {children}
+          </ThemeAwareClerkProvider>
         </ThemeProvider>
       </body>
     </html>

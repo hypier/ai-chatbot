@@ -1,9 +1,10 @@
-import { auth } from '@/app/(auth)/auth';
+
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
   saveDocument,
 } from '@/db/queries';
+import { userId } from '@/service/user';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,9 +14,9 @@ export async function GET(request: Request) {
     return new Response('Missing id', { status: 400 });
   }
 
-  const session = await auth();
+  const sessionId = userId();
 
-  if (!session || !session.user) {
+  if (!sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
     return new Response('Not Found', { status: 404 });
   }
 
-  if (document.userId !== session.user.id) {
+  if (document.userId !== sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -42,21 +43,21 @@ export async function POST(request: Request) {
     return new Response('Missing id', { status: 400 });
   }
 
-  const session = await auth();
+  const sessionId = userId();
 
-  if (!session) {
+  if (!sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
   const { content, title }: { content: string; title: string } =
     await request.json();
 
-  if (session.user && session.user.id) {
+  if (sessionId) {
     const document = await saveDocument({
       id,
       content,
       title,
-      userId: session.user.id,
+      userId: sessionId,
     });
 
     return Response.json(document, { status: 200 });
@@ -75,9 +76,9 @@ export async function PATCH(request: Request) {
     return new Response('Missing id', { status: 400 });
   }
 
-  const session = await auth();
+  const sessionId = userId();
 
-  if (!session || !session.user) {
+  if (!sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -85,7 +86,7 @@ export async function PATCH(request: Request) {
 
   const [document] = documents;
 
-  if (document.userId !== session.user.id) {
+  if (document.userId !== sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 

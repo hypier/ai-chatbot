@@ -1,6 +1,5 @@
 import {
   convertToCoreMessages,
-  generateObject,
   Message,
   StreamData,
   streamObject,
@@ -11,7 +10,6 @@ import { z } from 'zod';
 import { customModel } from '@/ai';
 import { models } from '@/ai/models';
 import { canvasPrompt, regularPrompt } from '@/ai/prompts';
-import { auth } from '@/app/(auth)/auth';
 import {
   deleteChatById,
   getChatById,
@@ -22,6 +20,7 @@ import {
 } from '@/db/queries';
 import { Suggestion } from '@/db/schema';
 import { generateUUID, sanitizeResponseMessages } from '@/lib/utils';
+import { userId } from '@/service/user';
 
 export const maxDuration = 60;
 
@@ -47,9 +46,9 @@ export async function POST(request: Request) {
   }: { id: string; messages: Array<Message>; modelId: string } =
     await request.json();
 
-  const session = await auth();
+  const sessionId = userId();
 
-  if (!session) {
+  if (!sessionId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -132,12 +131,12 @@ export async function POST(request: Request) {
 
           streamingData.append({ type: 'finish', content: '' });
 
-          if (session.user && session.user.id) {
+          if (sessionId) {
             await saveDocument({
               id,
               title,
               content: draftText,
-              userId: session.user.id,
+              userId: sessionId,
             });
           }
 
@@ -202,12 +201,12 @@ export async function POST(request: Request) {
 
           streamingData.append({ type: 'finish', content: '' });
 
-          if (session.user && session.user.id) {
+          if (sessionId) {
             await saveDocument({
               id,
               title: document.title,
               content: draftText,
-              userId: session.user.id,
+              userId: sessionId,
             });
           }
 
@@ -271,8 +270,8 @@ export async function POST(request: Request) {
             suggestions.push(suggestion);
           }
 
-          if (session.user && session.user.id) {
-            const userId = session.user.id;
+          if (sessionId) {
+            const userId = sessionId;
 
             await saveSuggestions({
               suggestions: suggestions.map((suggestion) => ({
@@ -293,7 +292,7 @@ export async function POST(request: Request) {
       },
     },
     onFinish: async ({ responseMessages }) => {
-      if (session.user && session.user.id) {
+      if (sessionId) {
         try {
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(responseMessages);
@@ -304,7 +303,7 @@ export async function POST(request: Request) {
               ...coreMessages,
               ...responseMessagesWithoutIncompleteToolCalls,
             ],
-            userId: session.user.id,
+            userId: sessionId,
           });
         } catch (error) {
           console.error('Failed to save chat');
@@ -332,16 +331,16 @@ export async function DELETE(request: Request) {
     return new Response('Not Found', { status: 404 });
   }
 
-  const session = await auth();
+  const session = await userId();
 
-  if (!session || !session.user) {
+  if (!session) {
     return new Response('Unauthorized', { status: 401 });
   }
 
   try {
     const chat = await getChatById({ id });
 
-    if (chat.userId !== session.user.id) {
+    if (chat.userId !== session) {
       return new Response('Unauthorized', { status: 401 });
     }
 
